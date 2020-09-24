@@ -55,10 +55,12 @@ def main():
     parser.add_argument("-u", "--user", metavar='USERNAME', help="DOMAIN\\username for authentication")
     parser.add_argument("-p", "--password", metavar='PASSWORD', help="Password or LM:NTLM hash, will prompt if not specified")
     parser.add_argument("-t", "--target", metavar='TARGET', help="Computername or username to target (FQDN or COMPUTER$ name, if unspecified user with -u is target)")
+    parser.add_argument("-x", "--type", metavar='TYPE', help="Target type, either user or computer")
     parser.add_argument("-s", "--spn", required=True, metavar='SPN', help="servicePrincipalName to add (for example: http/host.domain.local or cifs/host.domain.local)")
     parser.add_argument("-r", "--remove", action='store_true', help="Remove the SPN instead of add it")
     parser.add_argument("-q", "--query", action='store_true', help="Show the current target SPNs instead of modifying anything")
     parser.add_argument("-a", "--additional", action='store_true', help="Add the SPN via the msDS-AdditionalDnsHostName attribute")
+    
 
     args = parser.parse_args()
     #Prompt for password if not set
@@ -89,10 +91,13 @@ def main():
     else:
         targetuser = args.user.split('\\')[1]
 
-    if '.' in targetuser:
+    if args.type == 'computer':
+        print()
         search = '(dnsHostName=%s)' % targetuser
-    else:
+    elif (args.type == 'user'):
         search = '(SAMAccountName=%s)' % targetuser
+    else:
+        return
     c.search(s.info.other['defaultNamingContext'][0], search, controls=controls, attributes=['SAMAccountName', 'servicePrincipalName', 'dnsHostName', 'msds-additionaldnshostname'])
 
     try:
